@@ -6,8 +6,8 @@
   "scripts": {
     "build": "remix vite:build",
     "dev": "remix vite:dev",
-    "lint": "npx prettier --check app && npx eslint app --cache --cache-location ./node_modules/.cache/eslint",
-    "lint:fix": "npx prettier --write app && npx eslint --fix app --cache --cache-location ./node_modules/.cache/eslint",
+    "lint": "npx prettier --check app --ignore-path app/entry.*.tsx && npx eslint app --cache --cache-location ./node_modules/.cache/eslint",
+    "lint:fix": "npx prettier --write app --ignore-path app/entry.*.tsx && npx eslint --fix app --cache --cache-location ./node_modules/.cache/eslint",
     "start": "remix-serve ./build/server/index.js",
     "typecheck": "tsc"
   },
