@@ -1,5 +1,5 @@
 import type { MetaFunction } from "@remix-run/node";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import { Kanban, type KanbanStage } from "~/components/Kanban";
 
@@ -8,16 +8,26 @@ export const meta: MetaFunction = () => {
 };
 
 type DiffType = {
+  addBoard?: { stageNo: number };
   reorder?: { boardNo: number; newStageNo: number; newPrevBoardNo?: number };
 };
 
 export default function Index() {
   const [stages, setStages] = useState<KanbanStage[]>(initialStages);
+  const lastBoardNo = useRef<number>(3);
 
   const applyDiff = (diff: DiffType) => {
     setStages((oldStages) => {
       const newStages = structuredClone(oldStages);
-      if (diff.reorder) {
+      if (diff.addBoard) {
+        const { stageNo } = diff.addBoard;
+        const stage = newStages.find((s) => s.uniqueNo === stageNo);
+        if (!stage) throw new Error("Stage not found");
+        stage.boards.push({
+          uniqueNo: ++lastBoardNo.current,
+          content: `Task ${lastBoardNo.current}`,
+        });
+      } else if (diff.reorder) {
         const { boardNo, newStageNo, newPrevBoardNo } = diff.reorder;
         const stage = newStages.find((s) => s.boards.some((b) => b.uniqueNo === boardNo));
         const board = stage?.boards.find((b) => b.uniqueNo === boardNo);
@@ -32,13 +42,17 @@ export default function Index() {
     });
   };
 
+  const addBoard = (stageNo: number) => {
+    applyDiff({ addBoard: { stageNo } });
+  };
+
   const reorderBoard = (boardNo: number, newStageNo: number, newPrevBoardNo?: number) => {
     applyDiff({ reorder: { boardNo, newStageNo, newPrevBoardNo } });
   };
 
   return (
     <div className="h-screen flex justify-center items-center">
-      <Kanban stages={stages} onBoardDrop={reorderBoard} />
+      <Kanban stages={stages} onAddBoardClick={addBoard} onBoardDrop={reorderBoard} />
     </div>
   );
 }

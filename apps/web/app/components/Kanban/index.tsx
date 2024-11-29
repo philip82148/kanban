@@ -15,8 +15,9 @@ export type KanbanBoard = {
 
 export const Kanban: React.FC<{
   stages: KanbanStage[];
+  onAddBoardClick(stageNo: number): void;
   onBoardDrop(boardNo: number, newStageNo: number, newPrevBoardNo?: number): void;
-}> = ({ stages, onBoardDrop }) => {
+}> = ({ stages, onAddBoardClick, onBoardDrop }) => {
   const [draggingBoardNo, setDraggingBoardNo] = useState<number | undefined>();
 
   return (
@@ -27,6 +28,7 @@ export const Kanban: React.FC<{
           name={stage.name}
           boards={stage.boards}
           draggingBoardNo={draggingBoardNo}
+          onAddBoardClick={() => onAddBoardClick(stage.uniqueNo)}
           onBoardDragStart={(boardNo) => setDraggingBoardNo(boardNo)}
           onBoardDragEnd={() => setDraggingBoardNo(undefined)}
           onBoardDrop={(boardNo) => {

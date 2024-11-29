@@ -1,3 +1,5 @@
+import { BiPlus } from "react-icons/bi";
+
 import { DraggableBoard } from "./DraggableBoard";
 import { DropArea } from "./DropArea";
 
@@ -7,13 +9,27 @@ export const Stage: React.FC<{
   name: string;
   boards: KanbanBoard[];
   draggingBoardNo?: number;
+  onAddBoardClick(): void;
   onBoardDragStart(boardNo: number): void;
   onBoardDragEnd(): void;
   onBoardDrop(prevBoardNo?: number): void;
-}> = ({ name, boards, draggingBoardNo, onBoardDragStart, onBoardDragEnd, onBoardDrop }) => {
+}> = ({
+  name,
+  boards,
+  draggingBoardNo,
+  onAddBoardClick,
+  onBoardDragStart,
+  onBoardDragEnd,
+  onBoardDrop,
+}) => {
   return (
     <div className="flex flex-col border border-solid border-zinc-300 rounded-md bg-zinc-100 mx-2 w-[300px]">
-      <div className="text-lg font-semibold px-2 py-1">{name}</div>
+      <div className="flex justify-between items-center">
+        <div className="text-lg font-semibold pl-3">{name}</div>
+        <button className="btn" onClick={onAddBoardClick}>
+          <BiPlus />
+        </button>
+      </div>
       <div className="flex flex-col flex-grow">
         {boards.map((board, i) => (
           <DropArea
