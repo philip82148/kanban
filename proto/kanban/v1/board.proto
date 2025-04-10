@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+package kanban.v1;
+
+import "google/protobuf/empty.proto";
+
+service BoardService {
+  rpc CreateBoard(CreateBoardRequest) returns (Board) {}
+  rpc ListBoards(ListBoardsRequest) returns (ListBoardsResponse) {}
+  rpc ReorderBoard(ReorderBoardRequest) returns (google.protobuf.Empty) {}
+  rpc UpdateBoard(UpdateBoardRequest) returns (Board) {}
+  rpc DeleteBoard(DeleteBoardRequest) returns (google.protobuf.Empty) {}
+}
+
+message Board {
+  string id = 1;
+  string column_id = 2;
+  string title = 3;
+  optional string next_id = 4;
+}
+
+message CreateBoardRequest {
+  string column_id = 1;
+  string title = 2;
+}
+
+message ListBoardsRequest {
+  string project_id = 1;
+}
+
+message ListBoardsResponse {
+  repeated Board boards = 1;
+}
+
+message ReorderBoardRequest {
+  string id = 1;
+  string new_column_id = 2;
+  optional string new_next_id = 3;
+}
+
+message UpdateBoardRequest {
+  string id = 1;
+  string title = 2;
+}
+
+message DeleteBoardRequest {
+  string id = 1;
+}

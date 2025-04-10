@@ -1,2 +1,3 @@
 export { projectService } from "./project/projectService";
 export { columnService } from "./column/columnService";
+export { boardService } from "./board/boardService";

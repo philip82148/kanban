@@ -29,4 +29,20 @@ model Column {
   project    Project @relation(fields: [projectId], references: [id])
   nextColumn Column? @relation("ColumnOrder", fields: [nextId], references: [id])
   prevColumn Column? @relation("ColumnOrder")
+
+  Board Board[]
+}
+
+model Board {
+  id       String  @id @default(uuid()) @db.Uuid
+  title    String
+  columnId String  @db.Uuid
+  nextId   String? @unique @db.Uuid
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  column    Column @relation(fields: [columnId], references: [id])
+  nextBoard Board? @relation("BoardOrder", fields: [nextId], references: [id])
+  prevBoard Board? @relation("BoardOrder")
 }
