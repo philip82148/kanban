@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+package kanban.v1;
+
+import "google/protobuf/empty.proto";
+
+service ProjectService {
+  rpc CreateProject(CreateProjectRequest) returns (Project) {}
+  rpc ListProjects(google.protobuf.Empty) returns (ListProjectsResponse) {}
+  rpc UpdateProject(UpdateProjectRequest) returns (Project) {}
+  rpc DeleteProject(DeleteProjectRequest) returns (google.protobuf.Empty) {}
+}
+
+message Project {
+  string id = 1;
+  string title = 2;
+}
+
+message CreateProjectRequest {
+  string title = 1;
+}
+
+message ListProjectsResponse {
+  repeated Project projects = 1;
+}
+
+message UpdateProjectRequest {
+  string id = 1;
+  string title = 2;
+}
+
+message DeleteProjectRequest {
+  string id = 1;
+}
