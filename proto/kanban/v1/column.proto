@@ -1,0 +1,47 @@
+syntax = "proto3";
+
+package kanban.v1;
+
+import "google/protobuf/empty.proto";
+
+service ColumnService {
+  rpc CreateColumn(CreateColumnRequest) returns (Column) {}
+  rpc ListColumns(ListColumnsRequest) returns (ListColumnsResponse) {}
+  rpc ReorderColumn(ReorderColumnRequest) returns (google.protobuf.Empty) {}
+  rpc UpdateColumn(UpdateColumnRequest) returns (Column) {}
+  rpc DeleteColumn(DeleteColumnRequest) returns (google.protobuf.Empty) {}
+}
+
+message Column {
+  string id = 1;
+  string project_id = 2;
+  string title = 3;
+  optional string next_id = 4;
+}
+
+message CreateColumnRequest {
+  string project_id = 1;
+  string title = 2;
+}
+
+message ListColumnsRequest {
+  string project_id = 1;
+}
+
+message ListColumnsResponse {
+  repeated Column columns = 1;
+}
+
+message ReorderColumnRequest {
+  string id = 1;
+  optional string new_next_id = 2;
+}
+
+message UpdateColumnRequest {
+  string id = 1;
+  string title = 2;
+}
+
+message DeleteColumnRequest {
+  string id = 1;
+}
