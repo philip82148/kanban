@@ -1,15 +1,20 @@
 syntax = "proto3";
 
-package kanban.v1;
+package kanban.model;
 
 import "google/protobuf/empty.proto";
 
 service BoardService {
+  // Called from KanbanService.
   rpc CreateBoard(CreateBoardRequest) returns (Board) {}
   rpc ListBoards(ListBoardsRequest) returns (ListBoardsResponse) {}
   rpc ReorderBoard(ReorderBoardRequest) returns (google.protobuf.Empty) {}
   rpc UpdateBoard(UpdateBoardRequest) returns (Board) {}
   rpc DeleteBoard(DeleteBoardRequest) returns (google.protobuf.Empty) {}
+
+  // Called only internally.
+  rpc DeleteBoardsByProject(DeleteBoardsByProjectRequest) returns (google.protobuf.Empty) {}
+  rpc DeleteBoardsByColumn(DeleteBoardsByColumnRequest) returns (google.protobuf.Empty) {}
 }
 
 message Board {
@@ -45,4 +50,12 @@ message UpdateBoardRequest {
 
 message DeleteBoardRequest {
   string id = 1;
+}
+
+message DeleteBoardsByProjectRequest {
+  string project_id = 1;
+}
+
+message DeleteBoardsByColumnRequest {
+  string column_id = 1;
 }

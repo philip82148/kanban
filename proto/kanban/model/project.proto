@@ -1,10 +1,11 @@
 syntax = "proto3";
 
-package kanban.v1;
+package kanban.model;
 
 import "google/protobuf/empty.proto";
 
 service ProjectService {
+  // Called from KanbanService.
   rpc CreateProject(CreateProjectRequest) returns (Project) {}
   rpc ListProjects(google.protobuf.Empty) returns (ListProjectsResponse) {}
   rpc UpdateProject(UpdateProjectRequest) returns (Project) {}

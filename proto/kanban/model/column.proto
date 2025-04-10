@@ -1,15 +1,19 @@
 syntax = "proto3";
 
-package kanban.v1;
+package kanban.model;
 
 import "google/protobuf/empty.proto";
 
 service ColumnService {
+  // Called from KanbanService.
   rpc CreateColumn(CreateColumnRequest) returns (Column) {}
   rpc ListColumns(ListColumnsRequest) returns (ListColumnsResponse) {}
   rpc ReorderColumn(ReorderColumnRequest) returns (google.protobuf.Empty) {}
   rpc UpdateColumn(UpdateColumnRequest) returns (Column) {}
   rpc DeleteColumn(DeleteColumnRequest) returns (google.protobuf.Empty) {}
+
+  // Called only internally.
+  rpc DeleteColumnsByProject(DeleteColumnsByProjectRequest) returns (google.protobuf.Empty) {}
 }
 
 message Column {
@@ -44,4 +48,8 @@ message UpdateColumnRequest {
 
 message DeleteColumnRequest {
   string id = 1;
+}
+
+message DeleteColumnsByProjectRequest {
+  string project_id = 1;
 }

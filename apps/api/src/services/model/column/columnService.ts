@@ -8,10 +8,11 @@ import type {
   UpdateColumnRequest,
   ListColumnsRequest,
   ReorderColumnRequest,
-} from "~/gen/kanban/v1/column_pb";
-import { prisma } from "~/prisma";
+} from "@/gen/kanban/model/column_pb";
+import { prisma } from "@/prisma";
 
 export const columnService: ServiceImpl<typeof ColumnService> = {
+  // Called from KanbanService
   async createColumn(req: CreateColumnRequest) {
     const column = await prisma.column.create({
       data: { projectId: req.projectId, title: req.title },
@@ -54,6 +55,12 @@ export const columnService: ServiceImpl<typeof ColumnService> = {
   },
   async deleteColumn(req: DeleteColumnRequest) {
     await prisma.column.delete({ where: { id: req.id } });
+    return {};
+  },
+
+  // Called only internally.
+  async deleteColumnsByProject(req) {
+    await prisma.column.deleteMany({ where: { projectId: req.projectId } });
     return {};
   },
 };

@@ -8,10 +8,11 @@ import type {
   UpdateBoardRequest,
   ListBoardsRequest,
   ReorderBoardRequest,
-} from "~/gen/kanban/v1/board_pb";
-import { prisma } from "~/prisma";
+} from "@/gen/kanban/model/board_pb";
+import { prisma } from "@/prisma";
 
 export const boardService: ServiceImpl<typeof BoardService> = {
+  // Called from KanbanService
   async createBoard(req: CreateBoardRequest) {
     const board = await prisma.board.create({
       data: { columnId: req.columnId, title: req.title },
@@ -57,6 +58,16 @@ export const boardService: ServiceImpl<typeof BoardService> = {
   },
   async deleteBoard(req: DeleteBoardRequest) {
     await prisma.board.delete({ where: { id: req.id } });
+    return {};
+  },
+
+  // Called only internally.
+  async deleteBoardsByProject(req) {
+    await prisma.board.deleteMany({ where: { column: { projectId: req.projectId } } });
+    return {};
+  },
+  async deleteBoardsByColumn(req) {
+    await prisma.board.deleteMany({ where: { columnId: req.columnId } });
     return {};
   },
 };

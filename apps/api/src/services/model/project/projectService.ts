@@ -5,10 +5,11 @@ import type {
   DeleteProjectRequest,
   ProjectService,
   UpdateProjectRequest,
-} from "~/gen/kanban/v1/project_pb";
-import { prisma } from "~/prisma";
+} from "@/gen/kanban/model/project_pb";
+import { prisma } from "@/prisma";
 
 export const projectService: ServiceImpl<typeof ProjectService> = {
+  // Called from KanbanService
   async createProject(req: CreateProjectRequest) {
     const project = await prisma.project.create({ data: { title: req.title } });
     return project;

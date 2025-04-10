@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package kanban;
+
+import "google/protobuf/empty.proto";
+
+import "kanban/model/project.proto";
+import "kanban/model/column.proto";
+import "kanban/model/board.proto";
+
+service KanbanService {
+  rpc CreateProject(model.CreateProjectRequest) returns (model.Project) {}
+  rpc ListProjects(google.protobuf.Empty) returns (model.ListProjectsResponse) {}
+  rpc UpdateProject(model.UpdateProjectRequest) returns (model.Project) {}
+  rpc DeleteProject(model.DeleteProjectRequest) returns (google.protobuf.Empty) {}
+
+  rpc CreateColumn(model.CreateColumnRequest) returns (model.Column) {}
+  rpc ListColumns(model.ListColumnsRequest) returns (model.ListColumnsResponse) {}
+  rpc ReorderColumn(model.ReorderColumnRequest) returns (google.protobuf.Empty) {}
+  rpc UpdateColumn(model.UpdateColumnRequest) returns (model.Column) {}
+  rpc DeleteColumn(model.DeleteColumnRequest) returns (google.protobuf.Empty) {}
+
+  rpc CreateBoard(model.CreateBoardRequest) returns (model.Board) {}
+  rpc ListBoards(model.ListBoardsRequest) returns (model.ListBoardsResponse) {}
+  rpc ReorderBoard(model.ReorderBoardRequest) returns (google.protobuf.Empty) {}
+  rpc UpdateBoard(model.UpdateBoardRequest) returns (model.Board) {}
+  rpc DeleteBoard(model.DeleteBoardRequest) returns (google.protobuf.Empty) {}
+}
