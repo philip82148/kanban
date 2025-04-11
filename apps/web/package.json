@@ -8,10 +8,14 @@
     "dev": "remix vite:dev",
     "lint": "npx prettier --check app --ignore-path app/entry.*.tsx && npx eslint app --cache --cache-location ./node_modules/.cache/eslint",
     "lint:fix": "npx prettier --write app --ignore-path app/entry.*.tsx && npx eslint --fix app --cache --cache-location ./node_modules/.cache/eslint",
+    "buf:gen": "buf generate",
     "start": "remix-serve ./build/server/index.js",
     "typecheck": "tsc"
   },
   "dependencies": {
+    "@bufbuild/protobuf": "^2.2.5",
+    "@connectrpc/connect": "^2.0.2",
+    "@connectrpc/connect-node": "^2.0.2",
     "@remix-run/node": "^2.15.0",
     "@remix-run/react": "^2.15.0",
     "@remix-run/serve": "^2.15.0",
@@ -21,13 +25,15 @@
     "react-icons": "^5.3.0"
   },
   "devDependencies": {
+    "@bufbuild/buf": "^1.52.1",
+    "@bufbuild/protoc-gen-es": "^2.2.5",
     "@remix-run/dev": "^2.15.0",
     "@types/react": "^18.2.20",
     "@types/react-dom": "^18.2.7",
     "@typescript-eslint/eslint-plugin": "^6.7.4",
     "@typescript-eslint/parser": "^6.7.4",
     "autoprefixer": "^10.4.19",
-    "daisyui": "^4.12.13",
+    "daisyui": "^5.0.18",
     "eslint": "^8.38.0",
     "eslint-import-resolver-typescript": "^3.6.1",
     "eslint-plugin-import": "^2.28.1",

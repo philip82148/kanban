@@ -1,71 +1,132 @@
-import type { MetaFunction } from "@remix-run/node";
-import { useRef, useState } from "react";
+import type { ActionFunction, MetaFunction } from "@remix-run/node";
+import { redirect, useLoaderData, useSubmit } from "@remix-run/react";
+import type React from "react";
+import { useState } from "react";
+import { FaEllipsisH } from "react-icons/fa";
 
-import { Kanban, type KanbanStage } from "~/components/Kanban";
+import { DeleteDialog } from "@/components/DeleteDialog";
+import { connectClient } from "@/connect/connectClient";
+import type { CreateProjectRequest, DeleteProjectRequest } from "@/gen/kanban/model/project_pb";
+import type { ToPureMessage } from "@/types/ToPureMessage";
+import type { ProjectModel } from "@/types/models";
 
 export const meta: MetaFunction = () => {
-  return [{ title: "New Remix App" }, { name: "description", content: "Welcome to Remix!" }];
+  return [
+    { title: "Projects | Kanban Board" },
+    { name: "description", content: "This is the list of projects." },
+  ];
 };
 
-type DiffType = {
-  addBoard?: { stageNo: number };
-  reorder?: { boardNo: number; newStageNo: number; newPrevBoardNo?: number };
+type ActionData = {
+  createProject?: ToPureMessage<CreateProjectRequest>;
+  deleteProject?: ToPureMessage<DeleteProjectRequest>;
+};
+
+export const action: ActionFunction = async ({ request }) => {
+  const data = (await request.json()) as ActionData;
+  if (data.createProject) {
+    const req = data.createProject;
+    const project = await connectClient.createProject(req);
+    return redirect(`/${project.id}`);
+  } else if (data.deleteProject) {
+    const req = data.deleteProject;
+    await connectClient.deleteProject(req);
+  } else {
+    throw new Response("Invalid request", { status: 400 });
+  }
+  return null;
+};
+
+export const loader = async () => {
+  const { projects } = await connectClient.listProjects({});
+  return { projects };
 };
 
 export default function Index() {
-  const [stages, setStages] = useState<KanbanStage[]>(initialStages);
-  const lastBoardNo = useRef<number>(3);
-
-  const applyDiff = (diff: DiffType) => {
-    setStages((oldStages) => {
-      const newStages = structuredClone(oldStages);
-      if (diff.addBoard) {
-        const { stageNo } = diff.addBoard;
-        const stage = newStages.find((s) => s.uniqueNo === stageNo);
-        if (!stage) throw new Error("Stage not found");
-        stage.boards.push({
-          uniqueNo: ++lastBoardNo.current,
-          content: `Task ${lastBoardNo.current}`,
-        });
-      } else if (diff.reorder) {
-        const { boardNo, newStageNo, newPrevBoardNo } = diff.reorder;
-        const stage = newStages.find((s) => s.boards.some((b) => b.uniqueNo === boardNo));
-        const board = stage?.boards.find((b) => b.uniqueNo === boardNo);
-        if (!(stage && board)) throw new Error("Board not found");
-        stage.boards = stage.boards.filter((b) => b.uniqueNo !== boardNo);
-        const newStage = newStages.find((s) => s.uniqueNo === newStageNo);
-        if (!newStage) throw new Error("Stage not found");
-        const index = newStage.boards.findIndex((b) => b.uniqueNo === newPrevBoardNo);
-        newStage.boards.splice(index + 1, 0, board);
-      }
-      return newStages;
-    });
+  const { projects } = useLoaderData<typeof loader>();
+  const realSubmit = useSubmit();
+  const submit = (data: ActionData) => {
+    realSubmit(data, { method: "post", encType: "application/json" });
   };
 
-  const addBoard = (stageNo: number) => {
-    applyDiff({ addBoard: { stageNo } });
-  };
-
-  const reorderBoard = (boardNo: number, newStageNo: number, newPrevBoardNo?: number) => {
-    applyDiff({ reorder: { boardNo, newStageNo, newPrevBoardNo } });
-  };
+  // Project Delete
+  // Closing the dialog takes a bit of time, so we need to use a separate state
+  // for openness of the dialog instead of using !!projectToDelete.
+  const [projectToDelete, setProjectToDelete] = useState<ProjectModel | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
 
   return (
-    <div className="h-screen flex justify-center items-center">
-      <Kanban stages={stages} onAddBoardClick={addBoard} onBoardDrop={reorderBoard} />
+    <div className="container py-10 mx-auto">
+      <div className="flex items-end justify-between mb-4">
+        <h1 className="font-bold text-4xl">Projects</h1>
+        <NewButton
+          onClick={() => {
+            submit({
+              createProject: {
+                title: `New Project${projects.length ? ` (${projects.length + 1})` : ""}`,
+              },
+            });
+          }}
+        />
+      </div>
+      <ul className="list bg-base-100 rounded-box shadow-md">
+        {projects.map((project) => (
+          <ProjectColumn
+            key={project.id}
+            project={project}
+            onDeleteClick={() => {
+              setIsDialogOpen(true);
+              setProjectToDelete(project);
+            }}
+          />
+        ))}
+      </ul>
+      <DeleteDialog
+        message={`Are you sure you want to delete project '${projectToDelete?.title}'?`}
+        open={isDialogOpen}
+        onConfirm={() => {
+          if (!projectToDelete) return;
+          submit({ deleteProject: { id: projectToDelete.id } });
+          setIsDialogOpen(false);
+        }}
+        onCancel={() => setIsDialogOpen(false)}
+      />
     </div>
   );
 }
 
-const initialStages: KanbanStage[] = [
-  {
-    uniqueNo: 1,
-    name: "Backlog",
-    boards: [
-      { uniqueNo: 1, content: "Task 1" },
-      { uniqueNo: 2, content: "Task 2" },
-    ],
-  },
-  { uniqueNo: 2, name: "In Progress", boards: [{ uniqueNo: 3, content: "Task 3" }] },
-  { uniqueNo: 3, name: "Done", boards: [] },
-];
+const NewButton: React.FC<{ onClick: () => void }> = ({ onClick }) => {
+  return (
+    <button className="btn" onClick={onClick}>
+      New
+    </button>
+  );
+};
+
+const ProjectColumn: React.FC<{ project: ProjectModel; onDeleteClick: () => void }> = ({
+  project,
+  onDeleteClick,
+}) => {
+  return (
+    <li className="list-row">
+      <div className="flex items-center">
+        <div className="font-bold text-2xl">{project.title}</div>
+      </div>
+      <div />
+      <div className="dropdown dropdown-end">
+        <div tabIndex={0} role="button" className="btn btn-ghost m-1">
+          <FaEllipsisH />
+        </div>
+        <ul
+          // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex
+          tabIndex={0}
+          className="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm"
+        >
+          <li>
+            <button onClick={onDeleteClick}>Delete</button>
+          </li>
+        </ul>
+      </div>
+    </li>
+  );
+};
