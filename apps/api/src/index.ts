@@ -1,8 +1,7 @@
-import http from "http";
+import http2 from "node:http2";
 
 import type { ConnectRouter } from "@connectrpc/connect";
-import { expressConnectMiddleware } from "@connectrpc/connect-express";
-import express from "express";
+import { connectNodeAdapter } from "@connectrpc/connect-node";
 
 import { KanbanService } from "@/gen/kanban/kanban_pb";
 import { BoardService } from "@/gen/kanban/model/board_pb";
@@ -18,6 +17,4 @@ const routes = (router: ConnectRouter) => {
     .service(KanbanService, kanbanService);
 };
 
-const app = express();
-app.use(expressConnectMiddleware({ routes }));
-http.createServer(app).listen(8080);
+http2.createServer(connectNodeAdapter({ routes })).listen(8000);

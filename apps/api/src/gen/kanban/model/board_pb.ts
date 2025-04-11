@@ -249,7 +249,7 @@ export const BoardService: GenService<{
     output: typeof EmptySchema;
   },
   /**
-   * Called from other than KanbanService.
+   * Called only internally.
    *
    * @generated from rpc kanban.model.BoardService.DeleteBoardsByProject
    */

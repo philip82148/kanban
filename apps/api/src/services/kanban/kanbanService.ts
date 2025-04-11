@@ -8,6 +8,9 @@ export const kanbanService: ServiceImpl<typeof KanbanService> = {
   async createProject(req) {
     return await projectClient.createProject(req);
   },
+  async getProject(req) {
+    return await projectClient.getProject(req);
+  },
   async listProjects() {
     return await projectClient.listProjects({});
   },

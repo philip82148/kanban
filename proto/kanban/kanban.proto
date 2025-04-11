@@ -10,6 +10,7 @@ import "kanban/model/board.proto";
 
 service KanbanService {
   rpc CreateProject(model.CreateProjectRequest) returns (model.Project) {}
+  rpc GetProject(model.GetProjectRequest) returns (model.Project) {}
   rpc ListProjects(google.protobuf.Empty) returns (model.ListProjectsResponse) {}
   rpc UpdateProject(model.UpdateProjectRequest) returns (model.Project) {}
   rpc DeleteProject(model.DeleteProjectRequest) returns (google.protobuf.Empty) {}

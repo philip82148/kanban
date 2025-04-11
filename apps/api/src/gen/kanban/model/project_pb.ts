@@ -12,7 +12,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file kanban/model/project.proto.
  */
 export const file_kanban_model_project: GenFile = /*@__PURE__*/
-  fileDesc("ChprYW5iYW4vbW9kZWwvcHJvamVjdC5wcm90bxIMa2FuYmFuLm1vZGVsIiQKB1Byb2plY3QSCgoCaWQYASABKAkSDQoFdGl0bGUYAiABKAkiJQoUQ3JlYXRlUHJvamVjdFJlcXVlc3QSDQoFdGl0bGUYASABKAkiPwoUTGlzdFByb2plY3RzUmVzcG9uc2USJwoIcHJvamVjdHMYASADKAsyFS5rYW5iYW4ubW9kZWwuUHJvamVjdCIxChRVcGRhdGVQcm9qZWN0UmVxdWVzdBIKCgJpZBgBIAEoCRINCgV0aXRsZRgCIAEoCSIiChREZWxldGVQcm9qZWN0UmVxdWVzdBIKCgJpZBgBIAEoCTLJAgoOUHJvamVjdFNlcnZpY2USTAoNQ3JlYXRlUHJvamVjdBIiLmthbmJhbi5tb2RlbC5DcmVhdGVQcm9qZWN0UmVxdWVzdBoVLmthbmJhbi5tb2RlbC5Qcm9qZWN0IgASTAoMTGlzdFByb2plY3RzEhYuZ29vZ2xlLnByb3RvYnVmLkVtcHR5GiIua2FuYmFuLm1vZGVsLkxpc3RQcm9qZWN0c1Jlc3BvbnNlIgASTAoNVXBkYXRlUHJvamVjdBIiLmthbmJhbi5tb2RlbC5VcGRhdGVQcm9qZWN0UmVxdWVzdBoVLmthbmJhbi5tb2RlbC5Qcm9qZWN0IgASTQoNRGVsZXRlUHJvamVjdBIiLmthbmJhbi5tb2RlbC5EZWxldGVQcm9qZWN0UmVxdWVzdBoWLmdvb2dsZS5wcm90b2J1Zi5FbXB0eSIAYgZwcm90bzM", [file_google_protobuf_empty]);
+  fileDesc("ChprYW5iYW4vbW9kZWwvcHJvamVjdC5wcm90bxIMa2FuYmFuLm1vZGVsIiQKB1Byb2plY3QSCgoCaWQYASABKAkSDQoFdGl0bGUYAiABKAkiJQoUQ3JlYXRlUHJvamVjdFJlcXVlc3QSDQoFdGl0bGUYASABKAkiHwoRR2V0UHJvamVjdFJlcXVlc3QSCgoCaWQYASABKAkiPwoUTGlzdFByb2plY3RzUmVzcG9uc2USJwoIcHJvamVjdHMYASADKAsyFS5rYW5iYW4ubW9kZWwuUHJvamVjdCIxChRVcGRhdGVQcm9qZWN0UmVxdWVzdBIKCgJpZBgBIAEoCRINCgV0aXRsZRgCIAEoCSIiChREZWxldGVQcm9qZWN0UmVxdWVzdBIKCgJpZBgBIAEoCTKRAwoOUHJvamVjdFNlcnZpY2USTAoNQ3JlYXRlUHJvamVjdBIiLmthbmJhbi5tb2RlbC5DcmVhdGVQcm9qZWN0UmVxdWVzdBoVLmthbmJhbi5tb2RlbC5Qcm9qZWN0IgASRgoKR2V0UHJvamVjdBIfLmthbmJhbi5tb2RlbC5HZXRQcm9qZWN0UmVxdWVzdBoVLmthbmJhbi5tb2RlbC5Qcm9qZWN0IgASTAoMTGlzdFByb2plY3RzEhYuZ29vZ2xlLnByb3RvYnVmLkVtcHR5GiIua2FuYmFuLm1vZGVsLkxpc3RQcm9qZWN0c1Jlc3BvbnNlIgASTAoNVXBkYXRlUHJvamVjdBIiLmthbmJhbi5tb2RlbC5VcGRhdGVQcm9qZWN0UmVxdWVzdBoVLmthbmJhbi5tb2RlbC5Qcm9qZWN0IgASTQoNRGVsZXRlUHJvamVjdBIiLmthbmJhbi5tb2RlbC5EZWxldGVQcm9qZWN0UmVxdWVzdBoWLmdvb2dsZS5wcm90b2J1Zi5FbXB0eSIAYgZwcm90bzM", [file_google_protobuf_empty]);
 
 /**
  * @generated from message kanban.model.Project
@@ -54,6 +54,23 @@ export const CreateProjectRequestSchema: GenMessage<CreateProjectRequest> = /*@_
   messageDesc(file_kanban_model_project, 1);
 
 /**
+ * @generated from message kanban.model.GetProjectRequest
+ */
+export type GetProjectRequest = Message<"kanban.model.GetProjectRequest"> & {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id: string;
+};
+
+/**
+ * Describes the message kanban.model.GetProjectRequest.
+ * Use `create(GetProjectRequestSchema)` to create a new message.
+ */
+export const GetProjectRequestSchema: GenMessage<GetProjectRequest> = /*@__PURE__*/
+  messageDesc(file_kanban_model_project, 2);
+
+/**
  * @generated from message kanban.model.ListProjectsResponse
  */
 export type ListProjectsResponse = Message<"kanban.model.ListProjectsResponse"> & {
@@ -68,7 +85,7 @@ export type ListProjectsResponse = Message<"kanban.model.ListProjectsResponse"> 
  * Use `create(ListProjectsResponseSchema)` to create a new message.
  */
 export const ListProjectsResponseSchema: GenMessage<ListProjectsResponse> = /*@__PURE__*/
-  messageDesc(file_kanban_model_project, 2);
+  messageDesc(file_kanban_model_project, 3);
 
 /**
  * @generated from message kanban.model.UpdateProjectRequest
@@ -90,7 +107,7 @@ export type UpdateProjectRequest = Message<"kanban.model.UpdateProjectRequest"> 
  * Use `create(UpdateProjectRequestSchema)` to create a new message.
  */
 export const UpdateProjectRequestSchema: GenMessage<UpdateProjectRequest> = /*@__PURE__*/
-  messageDesc(file_kanban_model_project, 3);
+  messageDesc(file_kanban_model_project, 4);
 
 /**
  * @generated from message kanban.model.DeleteProjectRequest
@@ -107,7 +124,7 @@ export type DeleteProjectRequest = Message<"kanban.model.DeleteProjectRequest"> 
  * Use `create(DeleteProjectRequestSchema)` to create a new message.
  */
 export const DeleteProjectRequestSchema: GenMessage<DeleteProjectRequest> = /*@__PURE__*/
-  messageDesc(file_kanban_model_project, 4);
+  messageDesc(file_kanban_model_project, 5);
 
 /**
  * @generated from service kanban.model.ProjectService
@@ -121,6 +138,14 @@ export const ProjectService: GenService<{
   createProject: {
     methodKind: "unary";
     input: typeof CreateProjectRequestSchema;
+    output: typeof ProjectSchema;
+  },
+  /**
+   * @generated from rpc kanban.model.ProjectService.GetProject
+   */
+  getProject: {
+    methodKind: "unary";
+    input: typeof GetProjectRequestSchema;
     output: typeof ProjectSchema;
   },
   /**

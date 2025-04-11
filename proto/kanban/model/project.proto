@@ -7,6 +7,7 @@ import "google/protobuf/empty.proto";
 service ProjectService {
   // Called from KanbanService.
   rpc CreateProject(CreateProjectRequest) returns (Project) {}
+  rpc GetProject(GetProjectRequest) returns (Project) {}
   rpc ListProjects(google.protobuf.Empty) returns (ListProjectsResponse) {}
   rpc UpdateProject(UpdateProjectRequest) returns (Project) {}
   rpc DeleteProject(DeleteProjectRequest) returns (google.protobuf.Empty) {}
@@ -19,6 +20,10 @@ message Project {
 
 message CreateProjectRequest {
   string title = 1;
+}
+
+message GetProjectRequest {
+  string id = 1;
 }
 
 message ListProjectsResponse {

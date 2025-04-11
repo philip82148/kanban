@@ -6,7 +6,7 @@ import { ColumnService } from "@/gen/kanban/model/column_pb";
 import { ProjectService } from "@/gen/kanban/model/project_pb";
 
 const transport = createConnectTransport({
-  baseUrl: "http://localhost:8080",
+  baseUrl: "http://localhost:8000",
   httpVersion: "2",
 });
 
