@@ -20,11 +20,11 @@ export const DeleteDialog: React.FC<{
       <div className="modal-box">
         <h3 className="font-bold text-lg">{message}</h3>
         <div className="modal-action">
-          <button className="btn" onClick={onConfirm}>
-            Confirm
-          </button>
-          <button className="btn" onClick={onCancel}>
+          <button className="btn flex-grow basis-0" onClick={onCancel}>
             Cancel
+          </button>
+          <button className="btn flex-grow basis-0" onClick={onConfirm}>
+            Confirm
           </button>
         </div>
       </div>

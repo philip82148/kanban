@@ -8,6 +8,7 @@ import type {
   UpdateProjectRequest,
 } from "@/gen/kanban/model/project_pb";
 import { prisma } from "@/prisma";
+import { columnClient } from "@/services/internal-clients";
 
 export const projectService: ServiceImpl<typeof ProjectService> = {
   // Called from KanbanService
@@ -34,6 +35,7 @@ export const projectService: ServiceImpl<typeof ProjectService> = {
     return project;
   },
   async deleteProject(req: DeleteProjectRequest) {
+    await columnClient.deleteColumnsByProject({ projectId: req.id });
     await prisma.project.delete({ where: { id: req.id } });
     return {};
   },

@@ -1,43 +1,62 @@
 import clsx from "clsx";
-import { useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 
-export const DropArea: React.FC<
-  React.PropsWithChildren<{ expand?: boolean; disabled: boolean; onDrop(): void }>
-> = ({ expand, disabled, onDrop, children }) => {
-  const [isHovering, setIsHovering] = useState<boolean>(false);
-  const visible = !disabled && isHovering;
+export type DropAreaProps = React.PropsWithChildren<{
+  className: string;
+  dashedAreaClassName: string;
+  expand?: boolean;
+  enabled: boolean;
+  onDrop(): void;
+}>;
 
-  const timeout = useRef<NodeJS.Timeout | null>(null);
-
+export const DropArea: React.FC<DropAreaProps> = ({
+  className,
+  dashedAreaClassName,
+  enabled,
+  onDrop,
+  children,
+}) => {
+  const { isDropping, startDropping, stopDropping } = useIsDropping();
+  const showDashedArea = enabled && isDropping;
   return (
     <div
-      className={clsx("flex flex-col px-2 py-2", expand && "flex-grow")}
+      className={className}
       onDragEnter={() => {
-        if (disabled) return;
-        setIsHovering(true);
+        if (!enabled) return;
+        startDropping();
       }}
       onDragOver={(e) => {
-        if (disabled) return;
+        if (!enabled) return;
         e.preventDefault();
-        if (timeout.current) clearTimeout(timeout.current);
-        timeout.current = setTimeout(() => setIsHovering(false), 200);
+        startDropping();
       }}
-      onDrop={(e) => {
-        if (disabled) return;
-        e.preventDefault();
+      onDrop={() => {
+        if (!enabled) return;
         onDrop();
-        setIsHovering(false);
+        stopDropping();
       }}
     >
-      <div
-        className="h-24 mb-4 rounded-md border border-dashed border-zinc-300 transition-all ease-out duration-75"
-        style={{
-          height: visible ? undefined : 0,
-          borderWidth: visible ? undefined : 0,
-          marginBottom: visible ? undefined : 0,
-        }}
-      />
+      <div className={clsx(showDashedArea && dashedAreaClassName)} />
       {children}
     </div>
   );
+};
+
+const useIsDropping = () => {
+  const [isDropping, setIsDropping] = useState<boolean>(false);
+  const timeoutId = useRef<NodeJS.Timeout | null>(null);
+  const startDropping = useCallback(() => {
+    setIsDropping(true);
+    if (timeoutId.current) {
+      clearTimeout(timeoutId.current);
+    }
+    timeoutId.current = setTimeout(() => setIsDropping(false), 200);
+  }, []);
+  const stopDropping = useCallback(() => {
+    setIsDropping(false);
+    if (timeoutId.current) {
+      clearTimeout(timeoutId.current);
+    }
+  }, []);
+  return { isDropping, startDropping, stopDropping };
 };

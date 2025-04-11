@@ -1,5 +1,5 @@
 import type { ActionFunction, MetaFunction } from "@remix-run/node";
-import { redirect, useLoaderData, useSubmit } from "@remix-run/react";
+import { Link, redirect, useLoaderData, useSubmit } from "@remix-run/react";
 import type React from "react";
 import { useState } from "react";
 import { FaEllipsisH } from "react-icons/fa";
@@ -108,10 +108,10 @@ const ProjectColumn: React.FC<{ project: ProjectModel; onDeleteClick: () => void
   onDeleteClick,
 }) => {
   return (
-    <li className="list-row">
-      <div className="flex items-center">
+    <li className="list-row btn-ghost">
+      <Link className="flex items-center list-col-grow" to={`/${project.id}`}>
         <div className="font-bold text-2xl">{project.title}</div>
-      </div>
+      </Link>
       <div />
       <div className="dropdown dropdown-end">
         <div tabIndex={0} role="button" className="btn btn-ghost m-1">

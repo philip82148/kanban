@@ -1,5 +1,5 @@
 import { Code, ConnectError, type ServiceImpl } from "@connectrpc/connect";
-import type { Column as ColumnRecord } from "@prisma/client";
+import { Prisma, type Column as ColumnRecord } from "@prisma/client";
 
 import type {
   CreateColumnRequest,
@@ -14,9 +14,18 @@ import { prisma } from "@/prisma";
 export const columnService: ServiceImpl<typeof ColumnService> = {
   // Called from KanbanService
   async createColumn(req: CreateColumnRequest) {
+    const lastColumn = await prisma.column.findFirst({
+      where: { projectId: req.projectId, nextId: null },
+    });
     const column = await prisma.column.create({
       data: { projectId: req.projectId, title: req.title },
     });
+    if (lastColumn) {
+      await prisma.column.update({
+        data: { nextId: column.id },
+        where: { id: lastColumn.id },
+      });
+    }
     return toColumnMessage(column);
   },
   async listColumns(req: ListColumnsRequest) {
@@ -33,17 +42,30 @@ export const columnService: ServiceImpl<typeof ColumnService> = {
 
     // Remove the target and bypass the previous and the next.
     await prisma.column.update({ data: { nextId: null }, where: { id: req.id } });
-    await prisma.column.update({
-      data: { nextId: oldNextId },
-      where: { nextId: req.id, projectId },
-    });
+    try {
+      await prisma.column.update({
+        data: { nextId: oldNextId },
+        where: { nextId: req.id, projectId },
+      });
+    } catch (e) {
+      if (!(e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2025")) {
+        throw e;
+      }
+    }
 
     // Insert the target.
-    await prisma.column.update({
-      data: { nextId: req.id },
-      where: { nextId: req.newNextId, projectId },
-    });
-    await prisma.column.update({ data: { nextId: req.newNextId }, where: { id: req.id } });
+    const newNextId = req.newNextId ?? null;
+    try {
+      await prisma.column.updateMany({
+        data: { nextId: req.id },
+        where: { nextId: newNextId, projectId, id: { not: req.id } },
+      });
+    } catch (e) {
+      if (!(e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2025")) {
+        throw e;
+      }
+    }
+    await prisma.column.update({ data: { nextId: newNextId }, where: { id: req.id } });
     return {};
   },
   async updateColumn(req: UpdateColumnRequest) {
