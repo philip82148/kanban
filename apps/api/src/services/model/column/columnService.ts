@@ -10,6 +10,7 @@ import type {
   ReorderColumnRequest,
 } from "@/gen/kanban/model/column_pb";
 import { prisma } from "@/prisma";
+import { boardClient } from "@/services/internal-clients";
 
 export const columnService: ServiceImpl<typeof ColumnService> = {
   // Called from KanbanService
@@ -42,29 +43,22 @@ export const columnService: ServiceImpl<typeof ColumnService> = {
 
     // Remove the target and bypass the previous and the next.
     await prisma.column.update({ data: { nextId: null }, where: { id: req.id } });
-    try {
+    await ignoreNotFoundError(async () => {
       await prisma.column.update({
         data: { nextId: oldNextId },
         where: { nextId: req.id, projectId },
       });
-    } catch (e) {
-      if (!(e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2025")) {
-        throw e;
-      }
-    }
+    });
 
     // Insert the target.
     const newNextId = req.newNextId ?? null;
-    try {
+    await ignoreNotFoundError(async () => {
+      // This actually updates one record.
       await prisma.column.updateMany({
         data: { nextId: req.id },
         where: { nextId: newNextId, projectId, id: { not: req.id } },
       });
-    } catch (e) {
-      if (!(e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2025")) {
-        throw e;
-      }
-    }
+    });
     await prisma.column.update({ data: { nextId: newNextId }, where: { id: req.id } });
     return {};
   },
@@ -76,12 +70,23 @@ export const columnService: ServiceImpl<typeof ColumnService> = {
     return toColumnMessage(column);
   },
   async deleteColumn(req: DeleteColumnRequest) {
-    await prisma.column.delete({ where: { id: req.id } });
+    await boardClient.deleteBoardsByColumn({ columnId: req.id });
+    const prev = await ignoreNotFoundError(async () => {
+      return await prisma.column.update({
+        data: { nextId: null },
+        where: { nextId: req.id },
+      });
+    });
+    const target = await prisma.column.delete({ where: { id: req.id } });
+    if (prev && target.nextId) {
+      await prisma.column.update({ data: { nextId: target.nextId }, where: { id: prev.id } });
+    }
     return {};
   },
 
   // Called only internally.
   async deleteColumnsByProject(req) {
+    await boardClient.deleteBoardsByProject({ projectId: req.projectId });
     await prisma.column.deleteMany({ where: { projectId: req.projectId } });
     return {};
   },
@@ -94,4 +99,13 @@ const toColumnMessage = (record: ColumnRecord) => {
     title: record.title,
     nextId: record.nextId ?? undefined,
   };
+};
+
+const ignoreNotFoundError = async <T>(func: () => Promise<T>): Promise<T | undefined> => {
+  try {
+    return await func();
+  } catch (e) {
+    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2025") return undefined;
+    throw e;
+  }
 };

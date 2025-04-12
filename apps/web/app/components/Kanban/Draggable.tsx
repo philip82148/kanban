@@ -14,11 +14,13 @@ export const Draggable: React.FC<
     <div
       draggable
       className={clsx(className, isDragging && "opacity-50")}
-      onDragStart={() => {
+      onDragStart={(e) => {
+        e.stopPropagation();
         onDragStart();
         setIsDragging(true);
       }}
-      onDragEnd={() => {
+      onDragEnd={(e) => {
+        e.stopPropagation();
         onDragEnd();
         setIsDragging(false);
       }}

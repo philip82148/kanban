@@ -5,6 +5,12 @@ import { useLoaderData, useSubmit } from "@remix-run/react";
 import { Kanban } from "@/components/Kanban";
 import { connectClient } from "@/connect/connectClient";
 import type {
+  CreateBoardRequest,
+  DeleteBoardRequest,
+  ReorderBoardRequest,
+  UpdateBoardRequest,
+} from "@/gen/kanban/model/board_pb";
+import type {
   CreateColumnRequest,
   DeleteColumnRequest,
   ReorderColumnRequest,
@@ -24,6 +30,10 @@ type ActionData = {
   updateColumn?: ToPureMessage<UpdateColumnRequest>;
   deleteColumn?: ToPureMessage<DeleteColumnRequest>;
   reorderColumn?: ToPureMessage<ReorderColumnRequest>;
+  createBoard?: ToPureMessage<CreateBoardRequest>;
+  updateBoard?: ToPureMessage<UpdateBoardRequest>;
+  deleteBoard?: ToPureMessage<DeleteBoardRequest>;
+  reorderBoard?: ToPureMessage<ReorderBoardRequest>;
 };
 
 export const action: ActionFunction = async ({ request }) => {
@@ -40,6 +50,18 @@ export const action: ActionFunction = async ({ request }) => {
   } else if (data.reorderColumn) {
     const req = data.reorderColumn;
     await connectClient.reorderColumn(req);
+  } else if (data.createBoard) {
+    const req = data.createBoard;
+    await connectClient.createBoard(req);
+  } else if (data.updateBoard) {
+    const req = data.updateBoard;
+    await connectClient.updateBoard(req);
+  } else if (data.deleteBoard) {
+    const req = data.deleteBoard;
+    await connectClient.deleteBoard(req);
+  } else if (data.reorderBoard) {
+    const req = data.reorderBoard;
+    await connectClient.reorderBoard(req);
   } else {
     throw new Response("Invalid request", { status: 400 });
   }
@@ -79,6 +101,16 @@ export default function Project() {
           onColumnDrop={(columnId, newNextId) =>
             submit({ reorderColumn: { id: columnId, newNextId } })
           }
+          onAddBoardConfirm={(data) => {
+            submit({ createBoard: { columnId: data.columnId, title: data.title } });
+          }}
+          onEditBoardConfirm={(data) => {
+            submit({ updateBoard: { id: data.boardId, title: data.title } });
+          }}
+          onBoardDeleteConfirm={(boardId) => submit({ deleteBoard: { id: boardId } })}
+          onBoardDrop={(boardId, newColumnId, newNextBoardId) => {
+            submit({ reorderBoard: { id: boardId, newColumnId, newNextId: newNextBoardId } });
+          }}
         />
       </div>
     </div>

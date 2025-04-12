@@ -1,5 +1,5 @@
 import { Code, ConnectError, type ServiceImpl } from "@connectrpc/connect";
-import type { Board as BoardRecord } from "@prisma/client";
+import { Prisma, type Board as BoardRecord } from "@prisma/client";
 
 import type {
   CreateBoardRequest,
@@ -14,9 +14,18 @@ import { prisma } from "@/prisma";
 export const boardService: ServiceImpl<typeof BoardService> = {
   // Called from KanbanService
   async createBoard(req: CreateBoardRequest) {
+    const lastBoard = await prisma.board.findFirst({
+      where: { columnId: req.columnId, nextId: null },
+    });
     const board = await prisma.board.create({
       data: { columnId: req.columnId, title: req.title },
     });
+    if (lastBoard) {
+      await prisma.board.update({
+        data: { nextId: board.id },
+        where: { id: lastBoard.id },
+      });
+    }
     return toBoardMessage(board);
   },
   async listBoards(req: ListBoardsRequest) {
@@ -29,22 +38,28 @@ export const boardService: ServiceImpl<typeof BoardService> = {
     if (!target) {
       throw new ConnectError("The target board is not found.", Code.NotFound);
     }
-    const { columnId: oldColumnId } = target;
+    const { columnId: oldColumnId, nextId: oldNextId } = target;
 
     // Remove the target and bypass the previous and the next.
     await prisma.board.update({ data: { nextId: null }, where: { id: req.id } });
-    await prisma.board.update({
-      data: { nextId: target.nextId },
-      where: { columnId: oldColumnId, nextId: req.id },
+    await ignoreNotFoundError(async () => {
+      await prisma.board.update({
+        data: { nextId: oldNextId },
+        where: { columnId: oldColumnId, nextId: req.id },
+      });
     });
 
     // Insert the target.
-    await prisma.board.update({
-      data: { nextId: req.id },
-      where: { columnId: req.newColumnId, nextId: req.newNextId },
+    const newNextId = req.newNextId ?? null;
+    await ignoreNotFoundError(async () => {
+      // This actually updates one record.
+      await prisma.board.updateMany({
+        data: { nextId: req.id },
+        where: { columnId: req.newColumnId, nextId: newNextId, id: { not: req.id } },
+      });
     });
     await prisma.board.update({
-      data: { columnId: req.newColumnId, nextId: req.newNextId },
+      data: { columnId: req.newColumnId, nextId: newNextId },
       where: { id: req.id },
     });
     return {};
@@ -57,7 +72,16 @@ export const boardService: ServiceImpl<typeof BoardService> = {
     return toBoardMessage(board);
   },
   async deleteBoard(req: DeleteBoardRequest) {
-    await prisma.board.delete({ where: { id: req.id } });
+    const prev = await ignoreNotFoundError(async () => {
+      return await prisma.board.update({
+        data: { nextId: null },
+        where: { nextId: req.id },
+      });
+    });
+    const target = await prisma.board.delete({ where: { id: req.id } });
+    if (prev && target.nextId) {
+      await prisma.board.update({ data: { nextId: target.nextId }, where: { id: prev.id } });
+    }
     return {};
   },
 
@@ -79,4 +103,13 @@ const toBoardMessage = (record: BoardRecord) => {
     title: record.title,
     nextId: record.nextId ?? undefined,
   };
+};
+
+const ignoreNotFoundError = async <T>(func: () => Promise<T>): Promise<T | undefined> => {
+  try {
+    return await func();
+  } catch (e) {
+    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2025") return undefined;
+    throw e;
+  }
 };

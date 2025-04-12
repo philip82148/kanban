@@ -17,12 +17,21 @@ export const Kanban: React.FC<{
   onEditColumnConfirm: (data: { columnId: string; title: string }) => void;
   onDeleteColumnConfirm: (columnId: string) => void;
   onColumnDrop: (columnId: string, newColumnId: string | undefined) => void;
+  onAddBoardConfirm: (data: { columnId: string; title: string }) => void;
+  onEditBoardConfirm: (data: { boardId: string; title: string }) => void;
+  onBoardDrop: (boardId: string, newColumnId: string, newBoardId: string | undefined) => void;
+  onBoardDeleteConfirm: (boardId: string) => void;
 }> = ({
   columns: unorderedColumns,
+  boards,
   onAddColumnConfirm,
   onEditColumnConfirm,
   onDeleteColumnConfirm,
   onColumnDrop: onColumnDropReal,
+  onAddBoardConfirm,
+  onEditBoardConfirm,
+  onBoardDrop: onBoardDropReal,
+  onBoardDeleteConfirm,
 }) => {
   const columns = useMemo(() => {
     let column = unorderedColumns.find((c) => c.nextId === undefined);
@@ -33,6 +42,16 @@ export const Kanban: React.FC<{
     }
     return orderedColumns;
   }, [unorderedColumns]);
+  const columnIdToBoards = useMemo(() => {
+    const columnIdToBoards: Record<string, BoardModel[]> = {};
+    for (const board of boards) {
+      if (!(board.columnId in columnIdToBoards)) {
+        columnIdToBoards[board.columnId] = [];
+      }
+      columnIdToBoards[board.columnId].push(board);
+    }
+    return columnIdToBoards;
+  }, [boards]);
 
   // For Column Creation
   const [newColumnFormOpen, setNewColumnFormOpen] = useState<boolean>(false);
@@ -50,12 +69,21 @@ export const Kanban: React.FC<{
     onColumnDropReal(draggingColumnId, newNextId);
   };
 
+  // For Board Drag&Drop
+  const [draggingBoardId, setDraggingBoardId] = useState<string | null>(null);
+
+  // For Column Deletion
+  // Closing the dialog takes a bit of time, so we need to use a separate state
+  // for openness of the dialog instead of using !!projectToDelete.
+  const [boardToDelete, setBoardToDelete] = useState<BoardModel | null>(null);
+  const [boardDeleteDialogOpen, setBoardDeleteDialogOpen] = useState<boolean>(false);
+
   return (
     <div className="flex h-full">
       {columns.map((column, i) => (
         <ColumnDropArea
           key={column.id}
-          isFirst={!i}
+          noLeftMargin={!i}
           enabled={
             !!draggingColumnId &&
             !(draggingColumnId === column.id || draggingColumnId === columns[i - 1]?.id)
@@ -64,6 +92,7 @@ export const Kanban: React.FC<{
         >
           <DraggableColumn
             column={column}
+            boards={columnIdToBoards[column.id] ?? []}
             onEditConfirm={(data) => onEditColumnConfirm({ columnId: column.id, ...data })}
             onDeleteClick={() => {
               setColumnToDelete(column);
@@ -71,11 +100,24 @@ export const Kanban: React.FC<{
             }}
             onDragStart={() => setDraggingColumnId(column.id)}
             onDragEnd={() => setDraggingColumnId(null)}
+            draggingBoardId={draggingBoardId}
+            onBoardDragStart={(boardId) => setDraggingBoardId(boardId)}
+            onBoardDragEnd={() => setDraggingBoardId(null)}
+            onBoardDrop={(newNextBoardId) => {
+              if (!draggingBoardId) return;
+              onBoardDropReal(draggingBoardId, column.id, newNextBoardId);
+            }}
+            onAddBoardConfirm={(data) => onAddBoardConfirm({ columnId: column.id, ...data })}
+            onEditBoardConfirm={onEditBoardConfirm}
+            onBoardDeleteClick={(board) => {
+              setBoardToDelete(board);
+              setBoardDeleteDialogOpen(true);
+            }}
           />
         </ColumnDropArea>
       ))}
       <ColumnDropArea
-        isFirst={!columns.length}
+        noLeftMargin={!columns.length}
         enabled={!!draggingColumnId && draggingColumnId !== columns.at(-1)?.id}
         onDrop={() => onColumnDrop(undefined)}
       >
@@ -100,16 +142,26 @@ export const Kanban: React.FC<{
         }}
         onCancel={() => setColumnDeleteDialogOpen(false)}
       />
+      <DeleteDialog
+        message={`Are you sure you want to delete board '${boardToDelete?.title}'?`}
+        open={boardDeleteDialogOpen}
+        onConfirm={() => {
+          if (!boardToDelete) return;
+          onBoardDeleteConfirm(boardToDelete.id);
+          setBoardDeleteDialogOpen(false);
+        }}
+        onCancel={() => setBoardDeleteDialogOpen(false)}
+      />
     </div>
   );
 };
 
 const ColumnDropArea: React.FC<
-  Omit<DropAreaProps, "className" | "dashedAreaClassName"> & { isFirst?: boolean }
-> = ({ isFirst, ...props }) => {
+  Omit<DropAreaProps, "className" | "dashedAreaClassName"> & { noLeftMargin?: boolean }
+> = ({ noLeftMargin, ...props }) => {
   return (
     <DropArea
-      className={clsx("flex h-full", !isFirst && "pl-4")}
+      className={clsx("flex h-full", !noLeftMargin && "pl-4")}
       dashedAreaClassName="border border-dashed border-zinc-300 rounded-md w-80 mr-4"
       {...props}
     />
