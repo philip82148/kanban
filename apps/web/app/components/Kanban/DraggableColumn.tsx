@@ -22,8 +22,8 @@ export const DraggableColumn: React.FC<{
   onBoardDrop: (newNextBoardId: string | undefined) => void;
   onBoardDragStart: (boardId: string) => void;
   onBoardDragEnd: () => void;
-  onAddBoardConfirm: (data: { title: string }) => void;
-  onEditBoardConfirm: (data: { boardId: string; title: string }) => void;
+  onBoardAddConfirm: (data: { title: string }) => void;
+  onBoardEditConfirm: (boardId: string, data: { title: string }) => void;
   onBoardDeleteClick: (board: BoardModel) => void;
 }> = ({
   column,
@@ -36,8 +36,8 @@ export const DraggableColumn: React.FC<{
   onBoardDragStart,
   onBoardDragEnd,
   onBoardDrop,
-  onAddBoardConfirm,
-  onEditBoardConfirm,
+  onBoardAddConfirm,
+  onBoardEditConfirm,
   onBoardDeleteClick,
 }) => {
   const boards = useMemo(() => {
@@ -79,7 +79,7 @@ export const DraggableColumn: React.FC<{
               onDragStart={() => onBoardDragStart(board.id)}
               onDragEnd={onBoardDragEnd}
               onDeleteClick={() => onBoardDeleteClick(board)}
-              onEditConfirm={(data) => onEditBoardConfirm({ boardId: board.id, ...data })}
+              onEditConfirm={(data) => onBoardEditConfirm(board.id, data)}
             />
           </BoardDropArea>
         ))}
@@ -91,7 +91,7 @@ export const DraggableColumn: React.FC<{
           {newBoardFormOpen && (
             <NewBoardForm
               onConfirm={(data) => {
-                onAddBoardConfirm(data);
+                onBoardAddConfirm(data);
                 setNewBoardFormOpen(false);
               }}
               onCancel={() => setNewBoardFormOpen(false)}
@@ -134,7 +134,7 @@ const ColumnHeader: React.FC<{
       {isEditMode ? (
         <input
           {...register("title", { required: true })}
-          className={clsx("input font-bold text-xl flex-grow", !isEditMode && "hidden")}
+          className={clsx("input text-xl flex-grow", !isEditMode && "hidden")}
           placeholder="Type Column Title"
         />
       ) : (

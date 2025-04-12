@@ -13,23 +13,23 @@ import type { BoardModel, ColumnModel } from "@/types/models";
 export const Kanban: React.FC<{
   columns: ColumnModel[];
   boards: BoardModel[];
-  onAddColumnConfirm: (data: { title: string }) => void;
-  onEditColumnConfirm: (data: { columnId: string; title: string }) => void;
-  onDeleteColumnConfirm: (columnId: string) => void;
+  onColumnAddConfirm: (data: { title: string }) => void;
+  onColumnEditConfirm: (columnId: string, data: { title: string }) => void;
+  onColumnDeleteConfirm: (columnId: string) => void;
   onColumnDrop: (columnId: string, newColumnId: string | undefined) => void;
-  onAddBoardConfirm: (data: { columnId: string; title: string }) => void;
-  onEditBoardConfirm: (data: { boardId: string; title: string }) => void;
+  onBoardAddConfirm: (columnId: string, data: { title: string }) => void;
+  onBoardEditConfirm: (boardId: string, data: { title: string }) => void;
   onBoardDrop: (boardId: string, newColumnId: string, newBoardId: string | undefined) => void;
   onBoardDeleteConfirm: (boardId: string) => void;
 }> = ({
   columns: unorderedColumns,
   boards,
-  onAddColumnConfirm,
-  onEditColumnConfirm,
-  onDeleteColumnConfirm,
+  onColumnAddConfirm,
+  onColumnEditConfirm,
+  onColumnDeleteConfirm,
   onColumnDrop: onColumnDropReal,
-  onAddBoardConfirm,
-  onEditBoardConfirm,
+  onBoardAddConfirm,
+  onBoardEditConfirm: onBoardEditConfirm,
   onBoardDrop: onBoardDropReal,
   onBoardDeleteConfirm,
 }) => {
@@ -93,7 +93,7 @@ export const Kanban: React.FC<{
           <DraggableColumn
             column={column}
             boards={columnIdToBoards[column.id] ?? []}
-            onEditConfirm={(data) => onEditColumnConfirm({ columnId: column.id, ...data })}
+            onEditConfirm={(data) => onColumnEditConfirm(column.id, data)}
             onDeleteClick={() => {
               setColumnToDelete(column);
               setColumnDeleteDialogOpen(true);
@@ -107,8 +107,8 @@ export const Kanban: React.FC<{
               if (!draggingBoardId) return;
               onBoardDropReal(draggingBoardId, column.id, newNextBoardId);
             }}
-            onAddBoardConfirm={(data) => onAddBoardConfirm({ columnId: column.id, ...data })}
-            onEditBoardConfirm={onEditBoardConfirm}
+            onBoardAddConfirm={(data) => onBoardAddConfirm(column.id, data)}
+            onBoardEditConfirm={onBoardEditConfirm}
             onBoardDeleteClick={(board) => {
               setBoardToDelete(board);
               setBoardDeleteDialogOpen(true);
@@ -124,7 +124,7 @@ export const Kanban: React.FC<{
         {newColumnFormOpen && (
           <NewColumnForm
             onConfirm={(data) => {
-              onAddColumnConfirm(data);
+              onColumnAddConfirm(data);
               setNewColumnFormOpen(false);
             }}
             onCancel={() => setNewColumnFormOpen(false)}
@@ -137,7 +137,7 @@ export const Kanban: React.FC<{
         open={columnDeleteDialogOpen}
         onConfirm={() => {
           if (!columnToDelete) return;
-          onDeleteColumnConfirm(columnToDelete.id);
+          onColumnDeleteConfirm(columnToDelete.id);
           setColumnDeleteDialogOpen(false);
         }}
         onCancel={() => setColumnDeleteDialogOpen(false)}

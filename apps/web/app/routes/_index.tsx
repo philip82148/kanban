@@ -1,12 +1,18 @@
 import type { ActionFunction, MetaFunction } from "@remix-run/node";
 import { Link, redirect, useLoaderData, useSubmit } from "@remix-run/react";
+import clsx from "clsx";
 import type React from "react";
 import { useState } from "react";
+import { useForm } from "react-hook-form";
 import { FaEllipsisH } from "react-icons/fa";
 
 import { DeleteDialog } from "@/components/DeleteDialog";
 import { connectClient } from "@/connect/connectClient";
-import type { CreateProjectRequest, DeleteProjectRequest } from "@/gen/kanban/model/project_pb";
+import type {
+  CreateProjectRequest,
+  DeleteProjectRequest,
+  UpdateProjectRequest,
+} from "@/gen/kanban/model/project_pb";
 import type { ToPureMessage } from "@/types/ToPureMessage";
 import type { ProjectModel } from "@/types/models";
 
@@ -19,6 +25,7 @@ export const meta: MetaFunction = () => {
 
 type ActionData = {
   createProject?: ToPureMessage<CreateProjectRequest>;
+  updateProject?: ToPureMessage<UpdateProjectRequest>;
   deleteProject?: ToPureMessage<DeleteProjectRequest>;
 };
 
@@ -28,6 +35,9 @@ export const action: ActionFunction = async ({ request }) => {
     const req = data.createProject;
     const project = await connectClient.createProject(req);
     return redirect(`/${project.id}`);
+  } else if (data.updateProject) {
+    const req = data.updateProject;
+    await connectClient.updateProject(req);
   } else if (data.deleteProject) {
     const req = data.deleteProject;
     await connectClient.deleteProject(req);
@@ -74,6 +84,9 @@ export default function Index() {
           <ProjectColumn
             key={project.id}
             project={project}
+            onEditConfirm={(data) =>
+              submit({ updateProject: { id: project.id, title: data.title } })
+            }
             onDeleteClick={() => {
               setIsDialogOpen(true);
               setProjectToDelete(project);
@@ -103,15 +116,46 @@ const NewButton: React.FC<{ onClick: () => void }> = ({ onClick }) => {
   );
 };
 
-const ProjectColumn: React.FC<{ project: ProjectModel; onDeleteClick: () => void }> = ({
-  project,
-  onDeleteClick,
-}) => {
+const ProjectColumn: React.FC<{
+  project: ProjectModel;
+  onEditConfirm: (data: { title: string }) => void;
+  onDeleteClick: () => void;
+}> = ({ project, onEditConfirm, onDeleteClick }) => {
+  const [isEditMode, setIsEditMode] = useState<boolean>(false);
+  const { register, handleSubmit, reset } = useForm<{ title: string }>({
+    values: { title: project.title },
+  });
+  const closeEditMode = () => {
+    setIsEditMode(false);
+    reset();
+  };
   return (
     <li className="list-row btn-ghost">
-      <Link className="flex items-center list-col-grow" to={`/${project.id}`}>
-        <div className="font-bold text-2xl">{project.title}</div>
-      </Link>
+      {isEditMode ? (
+        <div className="flex items-center gap-1">
+          <input
+            {...register("title", { required: true })}
+            className={clsx("input text-xl", !isEditMode && "hidden")}
+            placeholder="Type Column Title"
+          />
+          <button
+            className="btn btn-accent"
+            onClick={handleSubmit((data) => {
+              onEditConfirm(data);
+              closeEditMode();
+            })}
+          >
+            OK
+          </button>
+          <button className="btn" onClick={closeEditMode}>
+            Cancel
+          </button>
+        </div>
+      ) : (
+        <Link className="flex items-center list-col-grow" to={`/${project.id}`}>
+          <div className="font-bold text-2xl">{project.title}</div>
+        </Link>
+      )}
       <div />
       <div className="dropdown dropdown-end">
         <div tabIndex={0} role="button" className="btn btn-ghost m-1">
@@ -122,6 +166,9 @@ const ProjectColumn: React.FC<{ project: ProjectModel; onDeleteClick: () => void
           tabIndex={0}
           className="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm"
         >
+          <li>
+            <button onClick={() => setIsEditMode(true)}>Edit Title</button>
+          </li>
           <li>
             <button onClick={onDeleteClick}>Delete</button>
           </li>

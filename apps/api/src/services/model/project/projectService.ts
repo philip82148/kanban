@@ -24,7 +24,7 @@ export const projectService: ServiceImpl<typeof ProjectService> = {
     return project;
   },
   async listProjects() {
-    const projects = await prisma.project.findMany();
+    const projects = await prisma.project.findMany({ orderBy: { createdAt: "asc" } });
     return { projects };
   },
   async updateProject(req: UpdateProjectRequest) {
